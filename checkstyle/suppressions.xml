@@ -4,6 +4,7 @@
         "-//Puppy Crawl//DTD Suppressions 1.1//EN"
         "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 
+
 <suppressions>
 
     <suppress checks="ParameterName"
@@ -25,7 +26,7 @@
               files="(AbstractKafkaAvroDeserializer|CompatibilityResource|KafkaSchemaRegistry|KafkaStoreReaderThread|AvroData|DownloadSchemaRegistryMojo|AvroMessageFormatter).java"/>
 
     <suppress checks="NPathComplexity"
-              files="(AvroData|DownloadSchemaRegistryMojo|AvroMessageFormatter).java"/>
+              files="(AbstractKafkaAvroDeserializer|AvroData|DownloadSchemaRegistryMojo|AvroMessageFormatter).java"/>
 
     <suppress checks="JavaNCSS"
               files="AvroData.java"/>

@@ -75,9 +75,20 @@ public abstract class AbstractKafkaAvroDeserializer extends AbstractKafkaAvroSer
   private ByteBuffer getByteBuffer(byte[] payload) {
     ByteBuffer buffer = ByteBuffer.wrap(payload);
     if (buffer.get() != MAGIC_BYTE) {
-      throw new SerializationException("Unknown magic byte!");
+      System.out.println("No magic byte found, setting schema id  to 1 for HC used case");
+      buffer.clear();
+      return null;
     }
     return buffer;
+  }
+
+  private boolean isMagicBytePresent(ByteBuffer buffer) {
+    if (buffer.get() != MAGIC_BYTE) {
+      System.out.println("No magic byte found, setting schema id  to 1 for HC used case");
+      buffer.clear();
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -113,11 +124,14 @@ public abstract class AbstractKafkaAvroDeserializer extends AbstractKafkaAvroSer
     if (payload == null) {
       return null;
     }
-
-    int id = -1;
+    int id = 1;
     try {
-      ByteBuffer buffer = getByteBuffer(payload);
-      id = buffer.getInt();
+      ByteBuffer buffer = ByteBuffer.wrap(payload);
+      int length = buffer.limit();
+      if (isMagicBytePresent(buffer)) {
+        id = buffer.getInt();
+        length = length - 1 - idSize;
+      }
       Schema schema = schemaRegistry.getById(id);
       String subject = null;
       if (includeSchemaAndVersion) {
@@ -125,7 +139,7 @@ public abstract class AbstractKafkaAvroDeserializer extends AbstractKafkaAvroSer
         schema = schemaForDeserialize(id, schema, subject, isKey);
       }
 
-      int length = buffer.limit() - 1 - idSize;
+      //int length = buffer.limit() - 1 - idSize;
       final Object result;
       if (schema.getType().equals(Schema.Type.BYTES)) {
         byte[] bytes = new byte[length];
@@ -171,11 +185,13 @@ public abstract class AbstractKafkaAvroDeserializer extends AbstractKafkaAvroSer
           setVersionProp(schema, version);
         }
         if (schema.getType().equals(Schema.Type.RECORD)) {
+          System.out.println("Schema type is Record and is " + result.toString());
           return result;
         } else {
           return new NonRecordContainer(schema, result);
         }
       } else {
+        System.out.println("Object received : " + result.getClass() + "," + result.toString());
         return result;
       }
     } catch (IOException | RuntimeException e) {
